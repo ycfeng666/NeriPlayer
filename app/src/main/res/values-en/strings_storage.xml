@@ -94,4 +94,21 @@
     <string name="storage_details_files_summary">%1$s · %2$d files</string>
     <string name="storage_details_cache_record_count">%1$d Room cache entries</string>
     <string name="storage_details_empty">No measurable files found yet</string>
+    
+    <!-- Local Library Sync -->
+    <string name="settings_local_library_sync">Local Library Sync</string>
+    <string name="settings_local_library_sync_desc">Sync local music library category folders as playlists</string>
+    <string name="settings_local_library_sync_button">Sync Library</string>
+    <string name="settings_local_library_sync_hint">After selecting the library root directory, category folders will be scanned and corresponding playlists will be created</string>
+    <string name="settings_local_library_sync_success">Sync complete: %1$d new playlists with %2$d songs</string>
+    <string name="settings_local_library_sync_skipped">Skipped %1$d existing playlists</string>
+    <string name="settings_local_library_sync_error">Sync failed: %1$s</string>
+    <string name="settings_local_library_sync_no_directory">Please select a library root directory first</string>
+    <string name="settings_local_library_sync_choosing">Select Library Root Directory</string>
+    <string name="settings_local_library_library_directory">Library Root Directory</string>
+    <string name="settings_local_library_library_directory_desc">Root directory containing category folders</string>
+    <string name="settings_local_library_library_directory_current">Current: %1$s</string>
+    <string name="settings_local_library_library_directory_none">Not set</string>
+    <string name="settings_local_library_library_directory_reset">Reset Directory</string>
+    <string name="settings_local_library_library_directory_reset_desc">Clear the selected library directory</string>
 </resources>

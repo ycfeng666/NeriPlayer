@@ -185,6 +185,8 @@ import moe.ouom.neriplayer.ui.screen.tab.settings.component.SettingsLyricsSectio
 import moe.ouom.neriplayer.ui.screen.tab.settings.component.SettingsMotionSection
 import moe.ouom.neriplayer.ui.screen.tab.settings.component.SettingsPlaybackSection
 import moe.ouom.neriplayer.ui.screen.tab.settings.component.SettingsStorageCacheSection
+import moe.ouom.neriplayer.ui.screen.tab.settings.component.SettingsLocalLibrarySyncSection
+import moe.ouom.neriplayer.data.local.playlist.LocalPlaylistRepository
 import moe.ouom.neriplayer.ui.screen.tab.settings.component.StorageCacheDetailsContent
 import moe.ouom.neriplayer.ui.screen.tab.settings.component.SettingsTrafficManagementSection
 import moe.ouom.neriplayer.ui.screen.tab.settings.component.ThemeModeActionButton
@@ -947,10 +949,12 @@ fun SettingsScreen(
         }
     }
 
+    val localPlaylistRepo = remember(context) { LocalPlaylistRepository.getInstance(context) }
     // 备份与恢复的SAF启动器
     val exportPlaylistLauncher = rememberLauncherForActivityResult(
         contract = CreateDocument("application/json")
     ) { uri ->
+
         if (uri != null) {
             backupRestoreVm.initialize(context)
             backupRestoreVm.exportPlaylists(uri)
@@ -1975,92 +1979,70 @@ fun SettingsScreen(
                 }
 
                 SettingsPage.Storage -> {
-                    for (cardIndex in 0..3) {
+                    for (cardIndex in 0..4) {
                         item(key = "${selectedPage.name}:card:$cardIndex") {
-                            SettingsStorageCacheSection(
-                                expanded = true,
-                                arrowRotation = 0f,
-                                onExpandedChange = {},
-                                showHeader = false,
-                                currentDownloadDirectorySummary = downloadDirectorySummary,
-                                isCustomDownloadDirectory = !downloadDirectoryUri.isNullOrBlank(),
-                                downloadDirectoryChangeEnabled = downloadDirectoryChangeEnabled,
-                                onPickDownloadDirectory = {
-                                    if (!guardDownloadDirectoryChange()) {
-                                        showDownloadDirectorySwitchWarningDialog = true
-                                    }
-                                },
-                                onResetDownloadDirectory = resetDownloadDirectory,
-                                downloadFileNameTemplate = downloadFileNameTemplate,
-                                onDownloadFileNameTemplateChange = onDownloadFileNameTemplateChange,
-                                maxCacheSizeBytes = maxCacheSizeBytes,
-                                onMaxCacheSizeBytesChange = onMaxCacheSizeBytesChange,
-                                onOpenStorageDetails = {
-                                    activeSettingsPage = SettingsPage.StorageCacheDetails
-                                    refreshStorageDetails()
-                                },
-                                storageDetails = storageDetails,
-                                showClearCacheDialog = showClearCacheDialog,
-                                onShowClearCacheDialogChange = { showClearCacheDialog = it },
-                                clearAudioCache = clearAudioCache,
-                                onClearAudioCacheChange = { clearAudioCache = it },
-                                clearImageCache = clearImageCache,
-                                onClearImageCacheChange = { clearImageCache = it },
-                                clearDownloadStagingCache = clearDownloadStagingCache,
-                                onClearDownloadStagingCacheChange = { clearDownloadStagingCache = it },
-                                clearSharedMediaCache = clearSharedMediaCache,
-                                onClearSharedMediaCacheChange = { clearSharedMediaCache = it },
-                                clearLyricsCache = clearLyricsCache,
-                                onClearLyricsCacheChange = { clearLyricsCache = it },
-                                clearNeteasePlaylistCache = clearNeteasePlaylistCache,
-                                onClearNeteasePlaylistCacheChange = { clearNeteasePlaylistCache = it },
-                                clearBiliFavoriteCache = clearBiliFavoriteCache,
-                                onClearBiliFavoriteCacheChange = { clearBiliFavoriteCache = it },
-                                clearBiliArchiveCache = clearBiliArchiveCache,
-                                onClearBiliArchiveCacheChange = { clearBiliArchiveCache = it },
-                                clearYoutubePlaylistCache = clearYoutubePlaylistCache,
-                                onClearYoutubePlaylistCacheChange = { clearYoutubePlaylistCache = it },
-                                clearLogFiles = clearLogFiles,
-                                onClearLogFilesChange = { clearLogFiles = it },
-                                clearCrashLogs = clearCrashLogs,
-                                onClearCrashLogsChange = { clearCrashLogs = it },
-                                downloadStagingClearEnabled = !hasActiveDownloadOperations,
-                                onClearCacheClick = onClearCacheClick,
-                                cardIndex = cardIndex,
-                                highlightTargetId = settingsHighlightTargetId,
-                                highlightPulse = settingsHighlightPulse,
-                                onHighlightFinished = onSettingsHighlightFinished
-                            )
-                        }
-                    }
-                }
-
-                SettingsPage.StorageCacheDetails -> {
-                    item(key = "${selectedPage.name}:content") {
-                        StorageCacheDetailsContent(
-                            storageDetails = storageDetails,
-                            isScanning = storageDetailsLoading,
-                            onRefresh = ::refreshStorageDetails,
-                            onClearCache = {
-                                activeSettingsPage = SettingsPage.Storage
-                                showClearCacheDialog = true
-                            },
-                            onOpenSystemSettings = {
-                                runCatching {
-                                    val intent = Intent(
-                                        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                        "package:${context.packageName}".toUri()
-                                    )
-                                    context.startActivity(intent)
-                                }.onFailure {
-                                    showSettingsMessage(
-                                        composeResources.getString(
-                                            R.string.storage_open_system_settings_failed
-                                        )
-                                    )
-                                }
+                            if (cardIndex == 4) {
+                                SettingsLocalLibrarySyncSection(
+                                    downloadDirectoryUri = downloadDirectoryUri,
+                                    playlistRepository = localPlaylistRepo
+                                )
+                            } else {
+                                SettingsStorageCacheSection(
+                                    expanded = true,
+                                    arrowRotation = 0f,
+                                    onExpandedChange = {},
+                                    showHeader = false,
+                                    currentDownloadDirectorySummary = downloadDirectorySummary,
+                                    isCustomDownloadDirectory = !downloadDirectoryUri.isNullOrBlank(),
+                                    downloadDirectoryChangeEnabled = downloadDirectoryChangeEnabled,
+                                    onPickDownloadDirectory = {
+                                        if (!guardDownloadDirectoryChange()) {
+                                            showDownloadDirectorySwitchWarningDialog = true
+                                        }
+                                    },
+                                    onResetDownloadDirectory = resetDownloadDirectory,
+                                    downloadFileNameTemplate = downloadFileNameTemplate,
+                                    onDownloadFileNameTemplateChange = onDownloadFileNameTemplateChange,
+                                    maxCacheSizeBytes = maxCacheSizeBytes,
+                                    onMaxCacheSizeBytesChange = onMaxCacheSizeBytesChange,
+                                    onOpenStorageDetails = {
+                                        activeSettingsPage = SettingsPage.StorageCacheDetails
+                                        refreshStorageDetails()
+                                    },
+                                    storageDetails = storageDetails,
+                                    showClearCacheDialog = showClearCacheDialog,
+                                    onShowClearCacheDialogChange = { showClearCacheDialog = it },
+                                    clearAudioCache = clearAudioCache,
+                                    onClearAudioCacheChange = { clearAudioCache = it },
+                                    clearImageCache = clearImageCache,
+                                    onClearImageCacheChange = { clearImageCache = it },
+                                    clearDownloadStagingCache = clearDownloadStagingCache,
+                                    onClearDownloadStagingCacheChange = { clearDownloadStagingCache = it },
+                                    clearSharedMediaCache = clearSharedMediaCache,
+                                    onClearSharedMediaCacheChange = { clearSharedMediaCache = it },
+                                    clearLyricsCache = clearLyricsCache,
+                                    onClearLyricsCacheChange = { clearLyricsCache = it },
+                                    clearNeteasePlaylistCache = clearNeteasePlaylistCache,
+                                    onClearNeteasePlaylistCacheChange = { clearNeteasePlaylistCache = it },
+                                    clearBiliFavoriteCache = clearBiliFavoriteCache,
+                                    onClearBiliFavoriteCacheChange = { clearBiliFavoriteCache = it },
+                                    clearBiliArchiveCache = clearBiliArchiveCache,
+                                    onClearBiliArchiveCacheChange = { clearBiliArchiveCache = it },
+                                    clearYoutubePlaylistCache = clearYoutubePlaylistCache,
+                                    onClearYoutubePlaylistCacheChange = { clearYoutubePlaylistCache = it },
+                                    clearLogFiles = clearLogFiles,
+                                    onClearLogFilesChange = { clearLogFiles = it },
+                                    clearCrashLogs = clearCrashLogs,
+                                    onClearCrashLogsChange = { clearCrashLogs = it },
+                                    downloadStagingClearEnabled = !hasActiveDownloadOperations,
+                                    onClearCacheClick = onClearCacheClick,
+                                    cardIndex = cardIndex,
+                                    highlightTargetId = settingsHighlightTargetId,
+                                    highlightPulse = settingsHighlightPulse,
+                                    onHighlightFinished = onSettingsHighlightFinished
+                                )
                             }
-                        )
+                        }
                     }
                 }
 
@@ -2187,6 +2169,27 @@ fun SettingsScreen(
                                     listenTogetherNicknameError = null
                                     showListenTogetherNicknameDialog = true
                                 }
+                            }
+                        )
+                    }
+                }
+
+                SettingsPage.StorageCacheDetails -> {
+                    miuixSettingsSectionCardItem("${selectedPage.name}:content") {
+                        if (storageDetails == StorageUsageSummary.Empty) {
+                            LaunchedEffect(Unit) { refreshStorageDetails() }
+                        }
+                        StorageCacheDetailsContent(
+                            storageDetails = storageDetails,
+                            isScanning = false,
+                            onRefresh = { refreshStorageDetails() },
+                            onClearCache = { showClearCacheDialog = true },
+                            onOpenSystemSettings = {
+                                context.startActivity(
+                                    Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                        data = android.net.Uri.fromParts("package", context.packageName, null)
+                                    }
+                                )
                             }
                         )
                     }

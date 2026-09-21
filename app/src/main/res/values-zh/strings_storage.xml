@@ -94,4 +94,21 @@
     <string name="storage_details_files_summary">%1$s · %2$d 个文件</string>
     <string name="storage_details_cache_record_count">Room 缓存 %1$d 条</string>
     <string name="storage_details_empty">暂未发现可计量文件</string>
+    
+    <!-- Local Library Sync -->
+    <string name="settings_local_library_sync">本地音乐库同步</string>
+    <string name="settings_local_library_sync_desc">将本地音乐库分类文件夹同步为歌单</string>
+    <string name="settings_local_library_sync_button">同步音乐库</string>
+    <string name="settings_local_library_sync_hint">选择音乐库根目录后，将扫描分类文件夹并创建对应歌单</string>
+    <string name="settings_local_library_sync_success">同步完成：新增 %1$d 个歌单，共 %2$d 首歌曲</string>
+    <string name="settings_local_library_sync_skipped">跳过 %1$d 个已存在的歌单</string>
+    <string name="settings_local_library_sync_error">同步失败：%1$s</string>
+    <string name="settings_local_library_sync_no_directory">请先选择音乐库根目录</string>
+    <string name="settings_local_library_sync_choosing">选择音乐库根目录</string>
+    <string name="settings_local_library_library_directory">音乐库根目录</string>
+    <string name="settings_local_library_library_directory_desc">包含分类文件夹的根目录</string>
+    <string name="settings_local_library_library_directory_current">当前：%1$s</string>
+    <string name="settings_local_library_library_directory_none">未设置</string>
+    <string name="settings_local_library_library_directory_reset">重置目录</string>
+    <string name="settings_local_library_library_directory_reset_desc">清除已选择的音乐库目录</string>
 </resources>
