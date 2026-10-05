@@ -526,16 +526,22 @@ internal suspend fun LocalAudioImportManager.completeScannedSongs(
                                     metadataReference = knownReferences?.metadata
                                 )
                             }
-                            hydrateLocalSongTextMetadataWithKnownSidecars(
-                                context = context,
-                                song = identityHydrated,
-                                resolveCoverFallback = allowExpensiveFallback ||
-                                    !song.localFilePath.isNullOrBlank(),
-                                includeEmbeddedFallback = allowExpensiveFallback,
-                                includeEmbeddedCoverFallback = false,
-                                resolveDurationFallback = allowExpensiveFallback ||
-                                    !song.localFilePath.isNullOrBlank(),
-                                knownSidecarReferences = knownReferences
+                            // 扫描结果会直接变成「本地文件」歌单条目，也会被手动导入
+                            // 到其它歌单；必须先钉死本地身份，否则 sidecar 里的远端
+                            // sourceStableKey 会被带进歌单，播放时退化为在线曲
+                            LocalSongSupport.preserveLocalIdentityOnHydration(
+                                original = song,
+                                hydrated = hydrateLocalSongTextMetadataWithKnownSidecars(
+                                    context = context,
+                                    song = identityHydrated,
+                                    resolveCoverFallback = allowExpensiveFallback ||
+                                        !song.localFilePath.isNullOrBlank(),
+                                    includeEmbeddedFallback = allowExpensiveFallback,
+                                    includeEmbeddedCoverFallback = false,
+                                    resolveDurationFallback = allowExpensiveFallback ||
+                                        !song.localFilePath.isNullOrBlank(),
+                                    knownSidecarReferences = knownReferences
+                                )
                             )
                         } catch (error: CancellationException) {
                             throw error

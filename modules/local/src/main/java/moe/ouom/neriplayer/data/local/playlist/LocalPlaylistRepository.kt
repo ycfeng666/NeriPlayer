@@ -862,16 +862,22 @@ class LocalPlaylistRepository private constructor(
                             when {
                                 includeEmbeddedAssets -> SongMetadataUpdate(
                                     originalSong = originalSong,
-                                    newSongInfo = LocalAudioImportManager.hydrateLocalSongMetadata(
-                                        context,
-                                        originalSong
+                                    newSongInfo = LocalSongSupport.preserveLocalIdentityOnHydration(
+                                        original = originalSong,
+                                        hydrated = LocalAudioImportManager.hydrateLocalSongMetadata(
+                                            context,
+                                            originalSong
+                                        )
                                     )
                                 )
                                 includeLyricContents -> SongMetadataUpdate(
                                     originalSong = originalSong,
-                                    newSongInfo = LocalAudioImportManager.hydrateLocalSongTextMetadata(
-                                        context,
-                                        originalSong
+                                    newSongInfo = LocalSongSupport.preserveLocalIdentityOnHydration(
+                                        original = originalSong,
+                                        hydrated = LocalAudioImportManager.hydrateLocalSongTextMetadata(
+                                            context,
+                                            originalSong
+                                        )
                                     )
                                 )
                                 else -> LocalAudioImportManager
@@ -879,7 +885,12 @@ class LocalPlaylistRepository private constructor(
                                     .let { result ->
                                         SongMetadataUpdate(
                                             originalSong = originalSong,
-                                            newSongInfo = result.song,
+                                            // 封面补全同样会带上 sidecar 的远端身份，必须钉死
+                                            newSongInfo = LocalSongSupport
+                                                .preserveLocalIdentityOnHydration(
+                                                    original = originalSong,
+                                                    hydrated = result.song
+                                                ),
                                             clearCoverUrl = result.clearCoverUrl,
                                             clearOriginalCoverUrl = result.clearOriginalCoverUrl
                                         )

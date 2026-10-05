@@ -131,7 +131,12 @@ internal suspend fun LocalPlaylistRepository.hydrateLocalSongsForPersistence(
         songs.chunked(LocalPlaylistRepository.LOCAL_METADATA_HYDRATE_BATCH_SIZE).forEach { batch ->
             hydrated += batch.map { song ->
                 async(hydrateDispatcher) {
-                    LocalAudioImportManager.hydrateLocalSongMetadata(context, song)
+                    // 入库前的 hydrate 同样要钉死本地身份，否则 sidecar 里的
+                    // 远端 sourceStableKey 会跟着写进歌单，之后播放即退化为在线曲
+                    LocalSongSupport.preserveLocalIdentityOnHydration(
+                        original = song,
+                        hydrated = LocalAudioImportManager.hydrateLocalSongMetadata(context, song)
+                    )
                 }
             }.awaitAll()
         }

@@ -137,6 +137,39 @@ object LocalSongSupport {
         return if (isLocalSong(song, null)) LOCAL_ALBUM_IDENTITY else song.album
     }
 
+    /**
+     * 本地曲在 hydrate（补时长/封面/歌词）之后、回写歌单之前，必须把本地身份钉死。
+     *
+     * 关键点是**清空 [SongItem.sourceStableKey]**：它常常是从 `.npmeta.json` sidecar
+     * 继承来的远端（网易云）身份，而 [SongItem.identity] 会优先采信它
+     * （见 `normalizedSourceStableIdentity`），把整首本地曲判成在线曲、
+     * 把 `mediaUri` 归一化成 null；紧接着
+     * `recoverNeteaseRemoteSourceFromStaleLocalCopy` 还会顺势把它彻底转成在线曲。
+     * 外部表现就是「第一次点能播，之后退化为在线源」。
+     *
+     * 注意：一旦降级，`isLocalSong` 会返回 false，本函数会直接跳过，
+     * 因此必须在**回写那一刻**就钉死，不能指望事后补救。
+     *
+     * 这里只覆盖身份与本地引用相关字段，保留 hydrate 带来的时长、封面和歌词。
+     */
+    fun preserveLocalIdentityOnHydration(original: SongItem, hydrated: SongItem): SongItem {
+        if (!isLocalSong(original, null)) return hydrated
+        if (hydrated == original) return hydrated
+        return hydrated.copy(
+            id = original.id,
+            album = LOCAL_ALBUM_IDENTITY,
+            albumId = original.albumId,
+            mediaUri = original.mediaUri ?: hydrated.mediaUri,
+            localFilePath = original.localFilePath ?: hydrated.localFilePath,
+            localFileName = original.localFileName ?: hydrated.localFileName,
+            channelId = original.channelId ?: hydrated.channelId,
+            audioId = original.audioId ?: hydrated.audioId,
+            subAudioId = original.subAudioId,
+            // 本地曲不能携带远端来源身份，否则 identity() 会把它判成在线曲
+            sourceStableKey = null
+        )
+    }
+
     private fun MutableSet<String>.addMetadataFallbackKeys(song: SongItem) {
         val durationMs = song.durationMs.takeIf { it > 0L } ?: return
         val fileName = localFileName(song)

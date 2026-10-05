@@ -92,6 +92,7 @@ import moe.ouom.neriplayer.core.player.watchdog.recordPlaybackRuntimeProgress
 import moe.ouom.neriplayer.core.player.watchdog.schedulePlaybackStartupWatchdog
 import moe.ouom.neriplayer.core.player.watchdog.schedulePlaybackRuntimeWatchdog
 import moe.ouom.neriplayer.data.local.audioimport.LocalAudioImportManager
+import moe.ouom.neriplayer.data.local.media.LocalSongSupport
 import moe.ouom.neriplayer.data.local.playlist.runLocalPlaylistMutationSafely
 import moe.ouom.neriplayer.data.model.SongItem
 import moe.ouom.neriplayer.data.model.stableKey
@@ -951,16 +952,22 @@ private fun PlayerManager.maybeHydrateSongForPlayback(
             PlayerDependencies.downloads.isLikelyManagedDownloadSongFast(application, song)
         // 已发布下载的标题和封面来自目录索引，来源线索命中时也只补侧载文本
         // 避免 TagLib 读取整段音频和内嵌歌词抢占歌词快路径
-        val hydratedSong = if (isManagedDownloadSource) {
-            LocalAudioImportManager.hydrateLocalSongTextMetadata(
-                context = application,
-                song = song,
-                resolveCoverFallback = false,
-                includeEmbeddedFallback = false
-            )
-        } else {
-            LocalAudioImportManager.hydrateLocalSongMetadata(application, song)
-        }
+        // 注意：无论走哪条 hydrate 分支，回写歌单前都必须把本地身份钉死，
+        // 否则 mergeImportedSongMetadata 会从 .npmeta.json sidecar 捡回网易云
+        // sourceStableKey，导致"第一次能播、之后退化为在线曲"。
+        val hydratedSong = LocalSongSupport.preserveLocalIdentityOnHydration(
+            original = song,
+            hydrated = if (isManagedDownloadSource) {
+                LocalAudioImportManager.hydrateLocalSongTextMetadata(
+                    context = application,
+                    song = song,
+                    resolveCoverFallback = false,
+                    includeEmbeddedFallback = false
+                )
+            } else {
+                LocalAudioImportManager.hydrateLocalSongMetadata(application, song)
+            }
+        )
         if (hydratedSong == song) {
             return@launch
         }
